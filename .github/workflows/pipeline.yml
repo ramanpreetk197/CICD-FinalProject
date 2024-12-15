@@ -1,0 +1,44 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run Backend Tests
+        working-directory: backend
+        run: npm test
+
+      - name: Set up Python for CDK
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+
+      - name: Install CDK and Dependencies
+        run: |
+          pip install -r Infrastructure/requirements.txt
+          npm install -g aws-cdk
+
+      - name: Synthesize and Deploy Infrastructure
+        run: |
+          cd Infrastructure
+          cdk synth
+          cdk deploy --require-approval never
